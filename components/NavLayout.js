@@ -2,13 +2,9 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import localFont from "@next/font/local";
 import { SessionProvider, signIn, signOut, useSession } from "next-auth/react";
 
-const livings = localFont({
-  src: "../fonts/Livingst.ttf",
-  variable: "--font-livings",
-});
+
 function login() {
   signIn("discord");
 }
@@ -18,7 +14,7 @@ export default function NavLayout() {
   return (
     <header>
       <nav
-        className={`bg-green-500 h-fit text-2xl font-bold ${livings.variable} font-livings`}
+        className={`bg-green-500 h-fit text-2xl font-bold font-livings`}
       >
         <ul className="flex items-center justify-around">
           <Link href={"/"}>

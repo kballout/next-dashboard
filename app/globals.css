@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: "livings";
+  src: url("../fonts/Livingst.ttf");
+}
+
 :root {
   --max-width: 1100px;
   --border-radius: 12px;

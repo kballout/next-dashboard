@@ -6,6 +6,7 @@ import perms from "../../utils/bitfield";
 import React from "react";
 import { getGuilds } from "@/utils/testData";
 import Sidebar from "@/components/Sidebar";
+import { updateUserGuilds } from "@/utils/authReducer";
 
 export default async function Dashboard() {
   const session = await getServerSession(authOptions);
@@ -42,12 +43,14 @@ export default async function Dashboard() {
 //       }
 //     }
 //   }
+
+
 const guilds = getGuilds()
   if (session) {
     return (
       <>
         <NavLayout />
-        <Sidebar guilds={guilds} session={session}/>
+        <Sidebar guilds={guilds} session={session} />
         <div>Welcome to the dashboard</div>
       </>
     );

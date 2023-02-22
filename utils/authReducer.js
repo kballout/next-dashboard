@@ -1,34 +1,27 @@
-import { createSlice } from "@reduxjs/toolkit"
-
+import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-    loggedIn: false,
-    authUser: null,
-    guilds: [],
-    selectedGuild: null
-}
-
+  guilds: [],
+  selectedGuild: null,
+};
 
 export const authReducer = createSlice({
-    name: 'auth',
-    initialState,
-    reducers: {
-        changeUserStatus: (state, action) => {
-            state.authUser = action.payload.authUser
-            state.guilds = action.payload.guilds
-            state.loggedIn = true
-        },
-        resetState: (state) => {
-            state.authUser = null
-            state.guilds = []
-            state.loginMessage = null
-            state.loggedIn = false
-        },
-        selectGuild: (state, action) => {
-            state.selectedGuild = action.payload
-        },
-    }
-})
+  name: "auth",
+  initialState,
+  reducers: {
+    updateUserGuilds: (state, action) => {
+      state.guilds = action.payload;
+    },
+    resetState: (state) => {
+      state.guilds = [];
+      state.selectedGuild = null
+    },
+    selectGuild: (state, action) => {
+      state.selectedGuild = action.payload;
+    },
+  },
+});
 
-export const {changeUserStatus, resetState, selectGuild} = authReducer.actions
-export default authReducer.reducer
+export const { updateUserGuilds, resetState, selectGuild } =
+  authReducer.actions;
+export default authReducer.reducer;
