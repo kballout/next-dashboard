@@ -1,59 +1,56 @@
+"use client";
 import NavLayout from "@/components/NavLayout";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { getServerSession } from "next-auth";
 import { useSession } from "next-auth/react";
 import perms from "../../utils/bitfield";
-import React from "react";
+import React, { useEffect } from "react";
 import { getGuilds } from "@/utils/testData";
 import Sidebar from "@/components/Sidebar";
 import { updateUserGuilds } from "@/utils/authReducer";
+import Image from "next/image";
+import { useDispatch } from "react-redux";
+import { redirect } from "next/navigation";
 
-export default async function Dashboard() {
-  const session = await getServerSession(authOptions);
-//   const fetchGuilds = await fetch(
-//     `https://discord.com/api/v10/users/@me/guilds`,
-//     {
-//       headers: {
-//         Authorization: `Bearer ${session?.accessToken}`,
-//       },
-//     }
-//   );
-//   const userGuilds = await fetchGuilds.json();
-//   const botGuildsFetch = await fetch(
-//     `https://discord.com/api/v10/users/@me/guilds`,
-//     {
-//       headers: {
-//         Authorization: `Bot ${process.env.TOKEN}`,
-//       },
-//     }
-//   );
+export default function Dashboard() {
+  const {data:session, status} = useSession();
+  const dispatch = useDispatch();
 
-//   const result = await botGuildsFetch.json();
-//   const botGuilds = new Map(result.map((obj) => [obj.id, obj]));
+  useEffect(() => {
+    async function getData() {
+      // await fetch("/api/guild/getGuilds", {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(session?.accessToken),
+      // }).then((res) => {
+      //   return res.json().then((data) => {
+      //     console.log(data);
+      //     dispatch(updateUserGuilds(data));
+      //   });
+      // });
+      dispatch(updateUserGuilds(getGuilds()))
+    }
+    if(status === 'authenticated'){
+      getData();
+    }
+  }, [status]);
 
-//   const guilds = [];
-//   let isManager, guild, permissions;
-//   for (const next of userGuilds) {
-//     guild = botGuilds.get(next.id);
-//     if (guild) {
-//       permissions = perms(next.permissions);
-//       isManager = permissions.includes("MANAGE_GUILD");
-//       if (isManager) {
-//         guilds.push(guild);
-//       }
-//     }
-//   }
-
-
-const guilds = getGuilds()
-  if (session) {
+  if(status === 'unauthenticated'){
+    redirect('/')
+  } else{
     return (
-      <>
-        <NavLayout />
-        <Sidebar guilds={guilds} session={session} />
-        <div>Welcome to the dashboard</div>
-      </>
+      <div>
+        {status === 'authenticated' ? (
+          <div>
+            <NavLayout />
+            <Sidebar />
+          </div>
+        ) : (
+          <></>
+        )}
+      </div>
     );
   }
-  return <div>You are not signed in</div>;
 }
