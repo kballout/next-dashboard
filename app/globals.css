@@ -95,6 +95,9 @@ body {
   overflow-x: hidden;
   background-color: #023a30 !important;
 }
+.background {
+  background-color: rgba(14, 70, 90, 0.952);
+}
 
 a {
   color: inherit;

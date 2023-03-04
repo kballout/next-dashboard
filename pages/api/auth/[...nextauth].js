@@ -2,9 +2,10 @@ import NextAuth from "next-auth/next";
 import DiscordProvider from "next-auth/providers/discord";
 
 export const authOptions = {
-  jwt: true,
-  maxAge: 30 * 24 * 60 * 60,
   secret: process.env.NEXTAUTH_SECRET,
+  pages: {
+    signIn: "/"
+  },
   callbacks: {
     async jwt({ token, account, profile }) {
       if (account) {

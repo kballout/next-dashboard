@@ -8,6 +8,7 @@ import {
   FaStore,
   FaClipboardList,
 } from "react-icons/fa";
+import { BsFillCheckSquareFill, BsXCircle } from "react-icons/bs";
 import { FiHome, FiSettings } from "react-icons/fi";
 import { HiUserGroup } from "react-icons/hi";
 import { GiSwordsEmblem } from "react-icons/gi";
@@ -18,26 +19,26 @@ import Link from "next/link";
 import axios from "axios";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import General from "../app/dashboard/[id]/General";
+import Moderation from "@/app/dashboard/[id]/Moderation";
 
-export default function Sidebar({guildSettings = {}}) {
+export default function Sidebar({ guildSettings = {} }) {
   const dispatch = useDispatch();
   const router = useRouter();
   const [show, setShow] = useState(false);
   const [setting, setSetting] = useState("home");
   const { guilds, selectedGuild } = useSelector((state) => state.auth);
   const { data: session } = useSession();
-  
+
   async function chooseGuild(guild) {
     if (!selectedGuild || (selectedGuild && selectedGuild.id !== guild.id)) {
       dispatch(selectGuild(guild));
-      setSetting("");
       router.push(`/dashboard/${guild.id}`);
     }
   }
-  console.log('guild settings');
   return (
-    <div className="flex items-center">
-      <div className="flex mr-auto h-screen float-left font-livings w-auto">
+    <div className="flex">
+      <div className="flex mr-auto float-left font-livings w-auto">
         <nav className="overflow-auto whitespace-nowrap bg-green-700 flex flex-col border-r-black float-left p-3 items-center">
           <div className="flex items-center gap-2">
             <Image
@@ -76,8 +77,8 @@ export default function Sidebar({guildSettings = {}}) {
         </nav>
         {/* sidebar extention */}
         <div
-          className={`bg-teal-800 opacity-95 h-screen w-0 border-2 border-black ease-in transition-all duration-200 ${
-            show ? "w-80" : "w-0"
+          className={`bg-teal-800 float-left opacity-100 border-2 border-black ease-in transition-all duration-200 ${
+            show ? "w-72" : "w-0 h-screen"
           }`}
         >
           {show ? (
@@ -218,7 +219,7 @@ export default function Sidebar({guildSettings = {}}) {
           )}
         </div>
       </div>
-      <div className="mr-auto">
+      <div className="mr-auto flex items-center">
         {!selectedGuild ? (
           <div
             className="bg-cover bg-no-repeat float-right"
@@ -230,23 +231,57 @@ export default function Sidebar({guildSettings = {}}) {
             }}
           ></div>
         ) : (
-          <div className="flex">
-            {setting === 'home' ? (
-              <div
-                className="bg-sky-500 h-40 text-center opacity-90"
-                style={{ width: "600px" }}
-              >
-                <h3 className="font-bold">{selectedGuild.name}</h3>
-                <h4>Overview</h4>
-                {guildSettings.current['initialize'] ? (
-                  <h3 className="mt-3 italic text-2xl">The activity is currently initialized</h3>
-                ): (
-                  <h3 className="mt-3 italic text-2xl">The activity has not been initialized</h3>
+          <div>
+            {guildSettings.current ? (
+              <div className="flex">
+                {setting === "home" ? (
+                  <div
+                    className="background h-40 text-center opacity-90 text-white p-3"
+                    style={{ width: "700px" }}
+                    >
+                    <h4 className="text-2xl">Overview</h4>
+                    <h3 className="font-bold mt-5">{selectedGuild.name}</h3>
+                    {guildSettings.current["initialize"] ? (
+                      <div className="flex items-center justify-center mt-3">
+                        <p className="italic text-lg">
+                          The activity is currently initialized
+                        </p>
+                        <BsFillCheckSquareFill
+                          size={23}
+                          className="ml-2 text-green-500"
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center">
+                        <p className="italic text-lg">
+                          The activity has not been initialized
+                        </p>
+                        <BsXCircle size={23} className="ml-2 text-red-500" />
+                      </div>
+                    )}
+                    {/* TODO put member,channel,role count */}
+                  </div>
+                ) : (
+                  <></>
                 )}
-                {/* TODO put member,channel,role count */}
+                {/* General settings */}
+                {setting === "general" ? (
+                  <General generalSettings={guildSettings.current["general"]} />
+                ) : (
+                  <></>
+                )}
+                {setting === "moderation" ? (
+                  <Moderation
+                    wordsList={
+                      Object.values(guildSettings.current["general"]['Bad Words List']['words'])
+                    }
+                  />
+                ) : (
+                  <></>
+                )}
               </div>
             ) : (
-              <div></div>
+              <></>
             )}
           </div>
         )}
