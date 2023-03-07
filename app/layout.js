@@ -2,7 +2,8 @@
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 import { Provider } from "react-redux";
-import { Store } from "@/utils/Store";
+import { Store, persistor } from "@/utils/Store";
+import { PersistGate } from "redux-persist/integration/react";
 
 export default function RootLayout({ children }) {
   return (
@@ -18,7 +19,9 @@ export default function RootLayout({ children }) {
       <body>
         <SessionProvider>
           <Provider store={Store}>
-            <main>{children}</main>
+            <PersistGate loading={null} persistor={persistor}>
+              <main>{children}</main>
+            </PersistGate>
           </Provider>
         </SessionProvider>
       </body>

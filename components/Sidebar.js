@@ -19,8 +19,9 @@ import Link from "next/link";
 import axios from "axios";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import General from "../app/dashboard/[id]/General";
-import Moderation from "@/app/dashboard/[id]/Moderation";
+import General from "../app/dashboard/[id]/general";
+import Moderation from "@/app/dashboard/[id]/moderation";
+import TeamManagement from "@/app/dashboard/[id]/management";
 
 export default function Sidebar({ guildSettings = {} }) {
   const dispatch = useDispatch();
@@ -264,7 +265,7 @@ export default function Sidebar({ guildSettings = {} }) {
                 ) : (
                   <></>
                 )}
-                {/* General settings */}
+                {/*settings */}
                 {setting === "general" ? (
                   <General generalSettings={guildSettings.current["general"]} />
                 ) : (
@@ -276,6 +277,11 @@ export default function Sidebar({ guildSettings = {} }) {
                       Object.values(guildSettings.current["general"]['Bad Words List']['words'])
                     }
                   />
+                ) : (
+                  <></>
+                )}
+                {setting === "management" ? (
+                  <TeamManagement teams={guildSettings.current["teams"]} />
                 ) : (
                   <></>
                 )}

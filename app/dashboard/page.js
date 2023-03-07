@@ -25,6 +25,12 @@ export default function Dashboard() {
       //     dispatch(updateUserGuilds(data));
       //   });
       // });
+      await fetch("/api/team/create", {
+        method: "POST",
+        headers: {
+              "Content-Type": "application/json",
+            },
+      })
       dispatch(updateUserGuilds(getGuilds()))
     }
     if(status === 'authenticated'){
