@@ -9,7 +9,7 @@ export default function SettingCard({ params }) {
       name={params.dataName}
       rules={params.rules}
       render={({
-        field: { value, onChange, onBlur },
+        field: { defaultValue, onChange, onBlur },
         fieldState: { error },
       }) => (
         <div className="flex flex-col w-96 bg-blue-900 text-white p-3 rounded-lg">
@@ -19,14 +19,14 @@ export default function SettingCard({ params }) {
           <p className="text-sm italic">Description: {params.description}</p>
           <input
             className="text-black rounded-md mt-3 h-8 p-2"
-            type={params.type}
+            type="number"
             min={params.rules.min || null}
             max={params.rules.max || null}
             name={params.dataName}
-            value={value}
+            value={defaultValue}
             onChange={onChange}
             onBlur={onBlur}
-            placeholder={params.name}
+            placeholder={params?.name}
           />
           <div className="self-stretch">
             {error ? (

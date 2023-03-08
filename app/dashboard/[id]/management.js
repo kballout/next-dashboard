@@ -2,16 +2,19 @@
 import React, { useRef, useState } from "react";
 import ReactModal from "react-modal";
 import { useSelector } from "react-redux";
+import { toast, ToastContainer } from "react-toastify";
 
-export default function TeamManagement({ teams }) {
+export default function TeamManagement({ allTeams }) {
   const [open, setOpen] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState(null);
-  const { selectedGuild } = useSelector((state) => state.auth);  
+  const [teams, setTeams] = useState(allTeams)
+  const { selectedGuild } = useSelector((state) => state.auth);
   const newPoints = useRef();
   const newFlag = useRef();
 
   async function editTeam() {
     let points, flag;
+    let newTeams = [...teams]
     if (newPoints.current.value) {
       points = parseFloat(newPoints.current.value);
     }
@@ -19,10 +22,10 @@ export default function TeamManagement({ teams }) {
       flag = newFlag.current.value;
     }
     if (points || flag) {
-      for (const next of teams) {
+      for (const next of newTeams) {
         if (next["Team ID"] === selectedTeam["Team ID"]) {
           if (points && flag) {
-            let res = await fetch("/api/team/edit", {
+            await fetch("/api/team/edit", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -31,17 +34,16 @@ export default function TeamManagement({ teams }) {
                 team: selectedTeam.Name,
                 points: points,
                 flag: flag,
-                id: selectedGuild.id
-              })
-            });
-            let body = await res.json()
-            if(body.status === 'success'){
+                id: selectedGuild.id,
+              }),
+            }).then(() => {
               next.Points = points;
               next["Team Flag"] = flag;
-            }
-          }
-          else if (points) {
-            let res = await fetch("/api/team/edit", {
+              setTeams(newTeams)
+              toast.success("Edit success")
+            })
+          } else if (points) {
+            await fetch("/api/team/edit", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -49,16 +51,15 @@ export default function TeamManagement({ teams }) {
               body: JSON.stringify({
                 team: selectedTeam.Name,
                 points: points,
-                id: selectedGuild.id
-              })
-            });
-            let body = await res.json()
-            if(body.status === 'success'){
+                id: selectedGuild.id,
+              }),
+            }).then(() => {
               next.Points = points;
-            }
-          }
-          else if (flag) {
-            let res = await fetch("/api/team/edit", {
+              setTeams(newTeams)
+              toast.success("Edit success")
+            })
+          } else if (flag) {
+            await fetch("/api/team/edit", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -66,13 +67,13 @@ export default function TeamManagement({ teams }) {
               body: JSON.stringify({
                 team: selectedTeam.Name,
                 flag: flag,
-                id: selectedGuild.id
-              })
-            });
-            let body = await res.json()
-            if(body.status === 'success'){
+                id: selectedGuild.id,
+              }),
+            }).then(() => {
               next["Team Flag"] = flag;
-            }
+              setTeams(newTeams)
+              toast.success("Edit success")
+            })
           }
           break;
         }
@@ -137,50 +138,53 @@ export default function TeamManagement({ teams }) {
         className="background opacity-90 text-white p-5 mb-8"
         style={{ width: "1000px" }}
       >
+        <ToastContainer/>
         <table className="w-full">
-          <tr className="border-b-2 border-white">
-            <th className="border-b-2 border-white">Team Name</th>
-            <th className="border-b-2 border-white">Scout Bucks</th>
-            <th className="border-b-2 border-white">Team Flag Set</th>
-            <th className="border-b-2 border-white">Actions</th>
-          </tr>
-          {teams.map((team) => (
-            <tr
-              className="border-b-2 border-white h-14 hover:bg-lime-600"
-              key={team["Team ID"]}
-            >
-              <td>{team.Name}</td>
-              <td>{team.Points}</td>
-              <td>
-                {team["Team Flag"] ===
-                "https://drive.google.com/thumbnail?id=" ? (
-                  "N/A"
-                ) : (
-                  <a
-                    className=" text-blue-300"
-                    target={"_blank"}
-                    rel="noopener noreferrer"
-                    href={team["Team Flag"]}
-                  >
-                    Flag Link
-                  </a>
-                )}
-              </td>
-              <td>
-                <div className="flex justify-center gap-2">
-                  <button
-                    className="bg-blue-500 rounded-md p-2 hover:bg-blue-800"
-                    onClick={() => {
-                      setSelectedTeam(team);
-                      setOpen(true);
-                    }}
-                  >
-                    Edit
-                  </button>
-                </div>
-              </td>
+          <tbody>
+            <tr className="border-b-2 border-white">
+              <th className="border-b-2 border-white">Team Name</th>
+              <th className="border-b-2 border-white">Scout Bucks</th>
+              <th className="border-b-2 border-white">Team Flag Set</th>
+              <th className="border-b-2 border-white">Actions</th>
             </tr>
-          ))}
+            {teams.map((team) => (
+              <tr
+                className="border-b-2 border-white h-14 hover:bg-lime-600"
+                key={team["Team ID"]}
+              >
+                <td>{team.Name}</td>
+                <td>{team.Points}</td>
+                <td>
+                  {team["Team Flag"] ===
+                  "https://drive.google.com/thumbnail?id=" ? (
+                    "N/A"
+                  ) : (
+                    <a
+                      className=" text-blue-300"
+                      target={"_blank"}
+                      rel="noopener noreferrer"
+                      href={team["Team Flag"]}
+                    >
+                      Flag Link
+                    </a>
+                  )}
+                </td>
+                <td>
+                  <div className="flex justify-center gap-2">
+                    <button
+                      className="bg-blue-500 rounded-md p-2 hover:bg-blue-800"
+                      onClick={() => {
+                        setSelectedTeam(team);
+                        setOpen(true);
+                      }}
+                    >
+                      Edit
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
         </table>
       </div>
     </div>

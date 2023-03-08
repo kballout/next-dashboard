@@ -2,9 +2,11 @@
 import SettingCard from "@/components/SettingCard";
 import React from "react";
 import { Controller, useForm } from "react-hook-form";
+import { useSelector } from "react-redux";
 
 export default function General({ generalSettings }) {
   const { control, handleSubmit } = useForm();
+  const { selectedGuild } = useSelector((state) => state.auth);
 
   const allParams = [
     {
@@ -130,7 +132,31 @@ export default function General({ generalSettings }) {
   ];
 
   const submitForm = async (data) => {
-    console.log(data);
+    if (
+      data.automaticMonthlyBonus ||
+      data.boostTimeLimit ||
+      data.exchangeBonus ||
+      data.exchangeRate ||
+      data.level1Buyer ||
+      data.level2Buyer ||
+      data.level3Buyer ||
+      data.maxOffenses ||
+      data.offensesBonus ||
+      data.pointsBonus ||
+      data.streakBonus
+    ) {
+      await fetch("/api/general/editGeneral", {
+        method: "POST",
+        headers: {
+          "Content-type": "application/json",
+        },
+        body: JSON.stringify({
+          id: selectedGuild.id,
+          data: data,
+        }),
+      });
+    }
+    window.location.reload()
   };
 
   return (
@@ -149,45 +175,11 @@ export default function General({ generalSettings }) {
             {allParams.map((param) => (
               <SettingCard key={param.name} params={param} />
             ))}
-            {/* auto bonus */}
-            <Controller
-              control={control}
-              name="automaticMonthlyBonus"
-              render={({
-                field: { value, onChange, onBlur },
-                fieldState: { error },
-              }) => (
-                <div className="flex flex-col w-96 bg-blue-900 text-white p-3 rounded-lg">
-                  <p className="ml-auto text-sm italic">
-                    Currently:{" "}
-                    {generalSettings["Automatic Monthly Bonus"] ? "On" : "Off"}
-                  </p>
-                  <h2 className="font-bold">Automatic Monthly Bonus</h2>
-                  <hr />
-                  <p className="text-sm italic">
-                    Description: Change this setting to allow automatic monthly
-                    bonuses in your server
-                  </p>
-                  <label className="flex items-center justify-center">
-                    Toggle Automatic Bonuses
-                    <input
-                      className="text-black rounded-md p-2 w-5 h-5 ml-2"
-                      type="checkbox"
-                      value={value}
-                      onChange={onChange}
-                      onBlur={onBlur}
-                      name="automaticMonthlyBonus"
-                      placeholder={generalSettings["Automatic Monthly Bonus"]}
-                    />
-                  </label>
-                </div>
-              )}
-            />
           </div>
-            <input
-              className="bg-blue-500 rounded-md p-2 cursor-pointer w-36 mt-5 hover:bg-blue-800"
-              type="submit"
-            />
+          <input
+            className="bg-blue-500 rounded-md p-2 cursor-pointer w-36 mt-5 hover:bg-blue-800"
+            type="submit"
+          />
         </form>
       </div>
     </div>

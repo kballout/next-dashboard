@@ -281,7 +281,7 @@ export default function Sidebar({ guildSettings = {} }) {
                   <></>
                 )}
                 {setting === "management" ? (
-                  <TeamManagement teams={guildSettings.current["teams"]} />
+                  <TeamManagement allTeams={guildSettings.current["teams"]} />
                 ) : (
                   <></>
                 )}

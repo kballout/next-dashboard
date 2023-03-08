@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import React, { useEffect } from "react";
 import { getGuilds } from "@/utils/testData";
 import Sidebar from "@/components/Sidebar";
-import { updateUserGuilds } from "@/utils/authReducer";
+import { selectGuild, updateUserGuilds } from "@/utils/authReducer";
 import { useDispatch } from "react-redux";
 
 export default function Dashboard() {
@@ -25,12 +25,7 @@ export default function Dashboard() {
       //     dispatch(updateUserGuilds(data));
       //   });
       // });
-      await fetch("/api/team/create", {
-        method: "POST",
-        headers: {
-              "Content-Type": "application/json",
-            },
-      })
+      dispatch(selectGuild(""))
       dispatch(updateUserGuilds(getGuilds()))
     }
     if(status === 'authenticated'){
