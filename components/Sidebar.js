@@ -22,6 +22,7 @@ import { useRouter } from "next/navigation";
 import General from "../app/dashboard/[id]/general";
 import Moderation from "@/app/dashboard/[id]/moderation";
 import TeamManagement from "@/app/dashboard/[id]/management";
+import Stores from "@/app/dashboard/[id]/stores";
 
 export default function Sidebar({ guildSettings = {} }) {
   const dispatch = useDispatch();
@@ -282,6 +283,11 @@ export default function Sidebar({ guildSettings = {} }) {
                 )}
                 {setting === "management" ? (
                   <TeamManagement allTeams={guildSettings.current["teams"]} />
+                ) : (
+                  <></>
+                )}
+                {setting === "stores" ? (
+                  <Stores allStores={guildSettings.current['stores']}/>
                 ) : (
                   <></>
                 )}
