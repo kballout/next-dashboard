@@ -14,7 +14,7 @@ module.exports = async function getBot() {
     bot.once("ready", () => {
       console.log("Ready!");
     });
-    await bot.login(process.env.TOKEN);
+    await bot.login(process.env.TOKEN);    
   }
   return bot;
 }

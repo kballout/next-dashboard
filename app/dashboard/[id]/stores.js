@@ -36,7 +36,26 @@ export default function Stores({ allStores }) {
     setOpen(false);
   }
 
-  function changeItem() {
+  async function changeItem() {
+    await fetch("/api/stores/editItem", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: selectedGuild.id,
+        storeName: selectedStore.Name,
+        itemNumber: selectedItem.Number,
+        itemName: newName.current.value || selectedItem.Name,
+        itemQty: newQty.current.value || selectedItem.Qty,
+        itemCost: newCost.current.value || selectedItem.Cost,
+        itemAvailable: newAvailability.current.value || selectedItem.Available,
+      }),
+    }).then((res) => {
+      if (res.ok) {
+        toast.success('Item has been updated', {theme: "dark"})
+      }
+    });
     setOpen(false);
   }
 
@@ -46,11 +65,51 @@ export default function Stores({ allStores }) {
     setSelectedStore(newStore);
   }
 
+  function changeStoreSettings() {}
+
+  async function createNewStore(e) {
+    e.preventDefault();
+    let split = newName.current.value.split(" ");
+    let nameValid = true
+    for (let i = 0; i < split.length; i++) {
+      split[i] = split[i][0].toUpperCase() + split[i].substr(1)
+    }
+    let storeName = split.join(" ")
+    for (const store of options) {
+      if(store.value === storeName){
+        nameValid = false
+        break
+      }
+    }
+    if(!nameValid){
+      toast.error("That store name already exists", {theme: 'dark'})
+    }
+    else{
+      toast.promise("Store is being made please wait")
+      await fetch("/api/stores/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: selectedGuild.id,
+          name: storeName,
+          level: newLevelRequired.current.value,
+          icon: newStoreIcon.current.value || "",
+        }),
+      }).then((res) => {
+        if (res.ok) {
+          window.location.reload();
+        }
+      });
+    }
+  }
+
   function RenderSettings() {
     if (
-      // selectedStore.Name !== "Store 1" &&
-      // selectedStore.Name !== "Store 2" &&
-      // selectedStore.Name !== "Store 3" &&
+      selectedStore.Name !== "Store 1" &&
+      selectedStore.Name !== "Store 2" &&
+      selectedStore.Name !== "Store 3" &&
       selectedStore.Name !== "Team Store"
     ) {
       return (
@@ -94,11 +153,14 @@ export default function Stores({ allStores }) {
             />
           </div>
           <div className="mt-5">
-              <p>Additional store options gives the player the ability to choose between extra stores</p>
-              <p className="italic underline">Currently</p>
-              {Object.values(selectedStore?.Options).map((str) => (
-                <div key={str}>{str}</div>
-              ))}
+            <p>
+              Additional store options gives the player the ability to choose
+              between extra stores
+            </p>
+            <p className="italic underline">Currently</p>
+            {Object.values(selectedStore?.Options).map((str) => (
+              <div key={str}>{str}</div>
+            ))}
           </div>
         </div>
       );
@@ -130,6 +192,20 @@ export default function Stores({ allStores }) {
             name={"Store Icon"}
             placeholder={selectedStore?.Icon || "Icon URL"}
           />
+          <div className="flex justify-evenly mt-8">
+            <button
+              onClick={() => setOpen(false)}
+              className="bg-red-500 rounded-md p-2 hover:bg-red-800"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => changeStoreSettings()}
+              className="bg-green-500 rounded-md p-2 hover:bg-green-800"
+            >
+              Confirm Changes
+            </button>
+          </div>
         </div>
       );
     }
@@ -146,6 +222,7 @@ export default function Stores({ allStores }) {
   return (
     <div className="text-white text-center mt-3">
       {/* Edit store settings */}
+      <ToastContainer/>
       <ReactModal
         ariaHideApp={false}
         className="top-2/4 left-2/4 right-auto bottom-auto"
@@ -228,7 +305,7 @@ export default function Stores({ allStores }) {
                       className="text-black rounded-md h-8 p-2 w-7 ml-2"
                       type={"checkbox"}
                       name={"Item Availability"}
-                      checked={selectedItem?.Available}
+                      defaultChecked={selectedItem?.Available}
                     />
                   </div>
                 </div>
@@ -268,6 +345,73 @@ export default function Stores({ allStores }) {
         ) : (
           <></>
         )}
+        {chosenModal === "newStore" ? (
+          <div
+            style={{ width: "700px", left: "40%" }}
+            className="background absolute top-64 rounded-md p-5"
+          >
+            <div className="text-white flex flex-col">
+              <h1 className="font-bold text-xl text-center">
+                Create New Store
+              </h1>
+              <hr />
+              <div className="flex flex-col">
+                <form onSubmit={(e) => createNewStore(e)}>
+                  <div className="flex items-center justify-start">
+                    <div>
+                      <label>Store Name</label>
+                      <input
+                        ref={newName}
+                        className="text-black rounded-md mt-1 h-8 p-2 w-40 ml-2"
+                        type={"text"}
+                        required
+                        name={"Store Name"}
+                        placeholder={"Store Name"}
+                      />
+                    </div>
+                    <div className="ml-5">
+                      <label>Level Required</label>
+                      <input
+                        ref={newLevelRequired}
+                        className="text-black rounded-md mt-1 h-8 p-2 w-24 ml-2"
+                        type={"number"}
+                        min={1}
+                        required
+                        name={"Store Icon"}
+                        placeholder={"Level"}
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-5">
+                    <label className="italic">Optional Store Icon</label>
+                    <input
+                      ref={newStoreIcon}
+                      className="text-black rounded-md mt-1 h-8 p-2 w-full"
+                      type={"url"}
+                      name={"Store Icon"}
+                      placeholder={"Icon URL"}
+                    />
+                  </div>
+                  <div className="flex justify-evenly mt-8">
+                    <button
+                      onClick={() => setOpen(false)}
+                      className="bg-red-500 rounded-md p-2 hover:bg-red-800"
+                    >
+                      Cancel
+                    </button>
+                    <input
+                      className="bg-green-500 rounded-md p-2 hover:bg-green-800"
+                      type={"submit"}
+                      value="Create New Store"
+                    />
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <></>
+        )}
       </ReactModal>
       <h2 className="text-2xl font-bold mb-3">Store Settings</h2>
       <p className="italic">Add/remove stores and edit store items/options</p>
@@ -282,7 +426,10 @@ export default function Stores({ allStores }) {
             defaultValue={options[0]}
             onChange={(val) => changeStore(val)}
           />
-          <button className="bg-blue-500 rounded-md p-2 hover:bg-blue-800">
+          <button
+            onClick={() => changeModal("newStore")}
+            className="bg-blue-500 rounded-md p-2 hover:bg-blue-800"
+          >
             Create New Store
           </button>
         </div>
