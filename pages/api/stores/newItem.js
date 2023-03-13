@@ -11,20 +11,18 @@ export default async function handler(req, res) {
     let client = await DbConnection.Get();
     let database = client.db(req.body.id);
     if (database) {
-      let pathName = "Items." + itemNumber + ".Name";
-      let pathQty = "Items." + itemNumber + ".Qty";
-      let pathCost = "Items." + itemNumber + ".Cost";
-      let pathAva = "Items." + itemNumber + ".Available";
       await database.collection("Stores").updateOne(
         {
           Name: storeName,
         },
         {
-          $set: {
-            [pathName]: itemName,
-            [pathQty]: itemQty,
-            [pathCost]: itemCost,
-            [pathAva]: itemAvailable,
+          $push: {
+            "Items": {
+                Name: itemName,
+                Qty: itemQty,
+                Cost: new Double(itemCost),
+                Available: itemAvailable
+            }
           },
         }
       );

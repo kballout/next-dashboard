@@ -13,6 +13,7 @@ export default function Stores({ allStores }) {
   const [chosenModal, setChosenModal] = useState(null);
   const [open, setOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState();
+  const [itemIndex, setitemIndex] = useState(0);
   //inputs
   const newName = useRef();
   const newCost = useRef();
@@ -20,7 +21,6 @@ export default function Stores({ allStores }) {
   const newAvailability = useRef();
   const newStoreIcon = useRef();
   const newLevelRequired = useRef();
-  const newStoreOptions = useRef();
 
   const options = stores.map((store) => {
     return {
@@ -31,8 +31,34 @@ export default function Stores({ allStores }) {
   const [selectedOption, setSelectedOption] = useState(options[0].value);
   const [selectedStore, setSelectedStore] = useState(stores[0]);
 
+  //extra store options dropdown
+  const [extraStores, setExtraStores] = useState();
+  const [addedStores, setAddedStores] = useState();
+  const [selectedExtraStoreOption, setSelectedExtraStoreOption] = useState();
+
   //api
-  function deleteItem() {
+  async function deleteItem() {
+    await fetch("/api/stores/deleteItem", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: selectedGuild.id,
+        storeName: selectedStore.Name,
+        itemNumber: itemIndex,
+      }),
+    }).then((res) => {
+      if (res.ok) {
+        for (let i = 0; i < stores.length; i++) {
+          if (stores[i].Name === selectedStore.Name) {
+            stores[i].Items.splice(itemIndex, 1);
+            break;
+          }
+        }
+        toast.success("Item has been removed", { theme: "dark" });
+      }
+    });
     setOpen(false);
   }
 
@@ -45,47 +71,89 @@ export default function Stores({ allStores }) {
       body: JSON.stringify({
         id: selectedGuild.id,
         storeName: selectedStore.Name,
-        itemNumber: selectedItem.Number,
+        itemNumber: itemIndex,
         itemName: newName.current.value || selectedItem.Name,
-        itemQty: newQty.current.value || selectedItem.Qty,
-        itemCost: newCost.current.value || selectedItem.Cost,
-        itemAvailable: newAvailability.current.value || selectedItem.Available,
+        itemQty: parseInt(newQty.current.value) || selectedItem.Qty,
+        itemCost: parseFloat(newCost.current.value) || selectedItem.Cost,
+        itemAvailable:
+          newAvailability.current.value === "on"
+            ? true
+            : false || selectedItem.Available,
       }),
     }).then((res) => {
       if (res.ok) {
-        toast.success('Item has been updated', {theme: "dark"})
+        for (let i = 0; i < stores.length; i++) {
+          if (stores[i].Name === selectedStore.Name) {
+            stores[i].Items[itemIndex] = {
+              Name: newName.current.value || selectedItem.Name,
+              Qty: parseInt(newQty.current.value) || selectedItem.Qty,
+              Cost: parseFloat(newCost.current.value) || selectedItem.Cost,
+              Available:
+                newAvailability.current.value === "on"
+                  ? true
+                  : false || selectedItem.Available,
+            };
+            break;
+          }
+        }
+        toast.success("Item has been updated", { theme: "dark" });
       }
     });
     setOpen(false);
   }
 
-  function changeStore(store) {
-    setSelectedOption(store);
-    let newStore = stores.filter((s) => s.Name === store.value)[0];
-    setSelectedStore(newStore);
+  async function createNewItem(e) {
+    e.preventDefault();
+    await fetch("/api/stores/newItem", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: selectedGuild.id,
+        storeName: selectedStore.Name,
+        itemNumber: selectedStore.Items.length,
+        itemName: newName.current.value,
+        itemQty: parseInt(newQty.current.value),
+        itemCost: parseFloat(newCost.current.value),
+        itemAvailable: newAvailability.current.value === "on" ? true : false,
+      }),
+    }).then((res) => {
+      if (res.ok) {
+        for (let i = 0; i < stores.length; i++) {
+          if (stores[i].Name === selectedStore.Name) {
+            stores[i].Items.push({
+              Name: newName.current.value,
+              Qty: parseInt(newQty.current.value),
+              Cost: parseFloat(newCost.current.value),
+              Available: newAvailability.current.value === "on" ? true : false,
+            });
+            break;
+          }
+        }
+        toast.success("Item has been created", { theme: "dark" });
+      }
+    });
+    setOpen(false);
   }
-
-  function changeStoreSettings() {}
 
   async function createNewStore(e) {
     e.preventDefault();
     let split = newName.current.value.split(" ");
-    let nameValid = true
+    let nameValid = true;
     for (let i = 0; i < split.length; i++) {
-      split[i] = split[i][0].toUpperCase() + split[i].substr(1)
+      split[i] = split[i][0].toUpperCase() + split[i].substr(1);
     }
-    let storeName = split.join(" ")
+    let storeName = split.join(" ");
     for (const store of options) {
-      if(store.value === storeName){
-        nameValid = false
-        break
+      if (store.value === storeName) {
+        nameValid = false;
+        break;
       }
     }
-    if(!nameValid){
-      toast.error("That store name already exists", {theme: 'dark'})
-    }
-    else{
-      toast.promise("Store is being made please wait")
+    if (!nameValid) {
+      toast.error("That store name already exists", { theme: "dark" });
+    } else {
       await fetch("/api/stores/create", {
         method: "POST",
         headers: {
@@ -94,7 +162,7 @@ export default function Stores({ allStores }) {
         body: JSON.stringify({
           id: selectedGuild.id,
           name: storeName,
-          level: newLevelRequired.current.value,
+          level: parseInt(newLevelRequired.current.value),
           icon: newStoreIcon.current.value || "",
         }),
       }).then((res) => {
@@ -103,6 +171,110 @@ export default function Stores({ allStores }) {
         }
       });
     }
+  }
+
+  async function changeStoreSettings() {
+    if (
+      selectedStore.Name === "Store 1" ||
+      selectedStore.Name === "Store 2" ||
+      selectedStore.Name === "Store 3" ||
+      selectedStore.Name === "Team Store"
+    ) {
+      await fetch("/api/stores/editSettings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: selectedGuild.id,
+          storeName: selectedStore.Name,
+          icon: newStoreIcon.current.value || selectedStore.Icon,
+        }),
+      }).then((res) => {
+        if (res.ok) {
+          for (let i = 0; i < stores.length; i++) {
+            if (stores[i].Name === selectedStore.Name) {
+              stores[i].Icon = newStoreIcon.current.value || selectedStore.Icon;
+              break
+            }
+          }
+          toast.success("Store settings have been saved", { theme: "dark" });
+        }
+      });
+      setOpen(false)
+    } 
+    //If extra store
+    else {
+      await fetch("/api/stores/editSettings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: selectedGuild.id,
+          storeName: selectedStore.Name,
+          icon: newStoreIcon.current.value || selectedStore.Icon,
+          levelRequired: parseInt(newLevelRequired.current.value) || selectedStore['Level Required'],
+          options: addedStores
+        }),
+      }).then((res) => {
+        if (res.ok) {
+          toast.success("Store settings have been saved", { theme: "dark" });
+          window.location.reload()
+        }
+      });
+      setOpen(false)
+    }
+  }
+
+  function changeStore(store) {
+    setSelectedOption(store);
+    let newStore = stores.filter((s) => s.Name === store.value)[0];
+    setSelectedStore(newStore);
+    if (
+      newStore.Name !== "Store 1" &&
+      newStore.Name !== "Store 2" &&
+      newStore.Name !== "Store 3" &&
+      newStore.Name !== "Team Store"
+    ) {
+      setAddedStores(Object.values(newStore.Options));
+      let opt = [];
+      for (const store of stores) {
+        if (
+          store.Name === "Store 1" ||
+          store.Name === "Store 2" ||
+          store.Name === "Store 3" ||
+          store.Name === "Team Store" ||
+          store.Name === newStore.Name
+        ) {
+        } else {
+          if (!Object.values(newStore.Options).includes(store.Name)) {
+            opt.push({
+              value: store.Name,
+              label: store.Name,
+            });
+          }
+        }
+      }
+      setExtraStores(opt);
+      if (opt.length !== 0) {
+        setSelectedExtraStoreOption(opt[0]);
+      }
+    }
+  }
+
+  function changeExtraStore(store) {
+    setSelectedExtraStoreOption(store);
+  }
+  function addExtraStore() {
+    setAddedStores([...addedStores, selectedExtraStoreOption.value]);
+    setExtraStores(
+      extraStores.filter((str) => str.value != selectedExtraStoreOption.value)
+    );
+  }
+  function removeExtraStore(str, index) {
+    setAddedStores(addedStores.filter((str, i) => i != index));
+    setExtraStores([...extraStores, { value: str, label: str }]);
   }
 
   function RenderSettings() {
@@ -152,15 +324,54 @@ export default function Stores({ allStores }) {
               placeholder={selectedStore?.Icon || "Icon URL"}
             />
           </div>
-          <div className="mt-5">
+          <div className="mt-10">
             <p>
               Additional store options gives the player the ability to choose
-              between extra stores
+              which stores they want to unlock at a certain level. Current
+              Settings:
             </p>
-            <p className="italic underline">Currently</p>
-            {Object.values(selectedStore?.Options).map((str) => (
-              <div key={str}>{str}</div>
-            ))}
+            <div className="bg-sky-600 rounded-md h-20 flex gap-2 p-2 flex-wrap">
+              {addedStores.map((str, index) => (
+                <div key={index}>
+                  <div className="bg-blue-500 p-2 text-sm rounded-md flex items-center">
+                    {str}
+                    <AiOutlineClose
+                      onClick={() => removeExtraStore(str, index)}
+                      className="ml-2 cursor-pointer"
+                      size={15}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-3 mt-4">
+              <Select
+                className="w-fit text-blue-400"
+                options={extraStores}
+                defaultValue={extraStores[0]}
+                onChange={(val) => changeExtraStore(val)}
+              />
+              <button
+                onClick={() => addExtraStore()}
+                className="bg-blue-500 rounded-md p-2 hover:bg-blue-800"
+              >
+                Add Store
+              </button>
+            </div>
+          </div>
+          <div className="flex justify-evenly mt-8">
+            <button
+              onClick={() => setOpen(false)}
+              className="bg-red-500 rounded-md p-2 hover:bg-red-800"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => changeStoreSettings()}
+              className="bg-green-500 rounded-md p-2 hover:bg-green-800"
+            >
+              Confirm Changes
+            </button>
           </div>
         </div>
       );
@@ -211,8 +422,10 @@ export default function Stores({ allStores }) {
     }
   }
 
-  function changeModal(modal, item = {}) {
+  function changeModal(modal, item = {}, index) {
     if (modal !== "settings") {
+      setitemIndex(parseInt(index));
+      console.log("item index " + itemIndex);
       setSelectedItem(item);
     }
     setChosenModal(modal);
@@ -222,7 +435,7 @@ export default function Stores({ allStores }) {
   return (
     <div className="text-white text-center mt-3">
       {/* Edit store settings */}
-      <ToastContainer/>
+      <ToastContainer />
       <ReactModal
         ariaHideApp={false}
         className="top-2/4 left-2/4 right-auto bottom-auto"
@@ -235,7 +448,8 @@ export default function Stores({ allStores }) {
             className="background absolute top-64 rounded-md"
           >
             <div className="text-white flex flex-col items-center">
-              <h2>Delete Item {selectedItem?.Number}</h2>
+              <h2 className="font-bold text-xl text-center">Delete Item</h2>
+              <hr className="w-full" />
               <p>Are you sure you want to delete Item {selectedItem?.Name}?</p>
               <div className="flex gap-5 mt-5">
                 <button
@@ -266,7 +480,7 @@ export default function Stores({ allStores }) {
                 Edit {selectedItem.Name}
               </h1>
               <hr />
-              <div className="">
+              <div>
                 <label>Name</label>
                 <input
                   ref={newName}
@@ -283,7 +497,8 @@ export default function Stores({ allStores }) {
                       className="text-black rounded-md h-8 p-2 w-24 ml-2"
                       type={"number"}
                       min={0}
-                      name={"Item Cost"}
+                      step={0.1}
+                      name={"Cost"}
                       placeholder={selectedItem?.Cost}
                     />
                   </div>
@@ -294,7 +509,7 @@ export default function Stores({ allStores }) {
                       className="text-black rounded-md h-8 p-2 w-24 ml-2"
                       type={"number"}
                       min={0}
-                      name={"Item Quantity"}
+                      name={"Quantity"}
                       placeholder={selectedItem?.Qty}
                     />
                   </div>
@@ -304,7 +519,7 @@ export default function Stores({ allStores }) {
                       ref={newAvailability}
                       className="text-black rounded-md h-8 p-2 w-7 ml-2"
                       type={"checkbox"}
-                      name={"Item Availability"}
+                      name={"Availability"}
                       defaultChecked={selectedItem?.Available}
                     />
                   </div>
@@ -329,9 +544,82 @@ export default function Stores({ allStores }) {
         ) : (
           <></>
         )}
+        {chosenModal === "newItem" ? (
+          <div
+            style={{ width: "600px", height: "250px", left: "40%" }}
+            className="background absolute top-64 rounded-md p-5"
+          >
+            <div className="text-white flex flex-col">
+              <h1 className="font-bold text-xl text-center">
+                New Item
+              </h1>
+              <hr />
+              <form onSubmit={(e) => createNewItem(e)}>
+                <label>Name</label>
+                <input
+                  ref={newName}
+                  className="text-black rounded-md mt-1 h-8 p-2 w-full"
+                  type={"text"}
+                  required
+                  placeholder={"Item Name"}
+                />
+                <div className="flex justify-around gap-3 mt-5">
+                  <div>
+                    <label>Cost</label>
+                    <input
+                      ref={newCost}
+                      className="text-black rounded-md h-8 p-2 w-24 ml-2"
+                      type={"number"}
+                      min={0}
+                      step={0.1}
+                      required
+                      placeholder={"Cost"}
+                    />
+                  </div>
+                  <div>
+                    <label>Quantity</label>
+                    <input
+                      ref={newQty}
+                      className="text-black rounded-md h-8 p-2 w-24 ml-2"
+                      type={"number"}
+                      min={0}
+                      required
+                      placeholder={"Quantity"}
+                    />
+                  </div>
+                  <div className="flex items-center">
+                    <label>Availability</label>
+                    <input
+                      ref={newAvailability}
+                      className="text-black rounded-md h-8 p-2 w-7 ml-2"
+                      type={"checkbox"}
+                      name={"Availability"}
+                      defaultChecked={false}
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-evenly mt-8">
+                  <button
+                    onClick={() => setOpen(false)}
+                    className="bg-red-500 rounded-md p-2 hover:bg-red-800"
+                  >
+                    Cancel
+                  </button>
+                  <input
+                    type={"submit"}
+                    className="bg-green-500 rounded-md p-2 hover:bg-green-800"
+                    value={"Create New Item"}
+                  />
+                </div>
+              </form>
+            </div>
+          </div>
+        ) : (
+          <></>
+        )}
         {chosenModal === "settings" ? (
           <div
-            style={{ width: "700px", left: "40%" }}
+            style={{ width: "700px", left: "40%", top: "150px" }}
             className="background absolute top-64 rounded-md p-5"
           >
             <div className="text-white flex flex-col">
@@ -453,12 +741,12 @@ export default function Stores({ allStores }) {
                 <th className="border-b-2 boreder-white">Available</th>
                 <th className="border-b-2 boreder-white">Actions</th>
               </tr>
-              {Object.values(selectedStore.Items).map((item) => (
+              {Object.values(selectedStore.Items).map((item, index) => (
                 <tr
                   className="border-b-2 border-white h-14 hover:bg-lime-600"
-                  key={item["Number"]}
+                  key={index}
                 >
-                  <td>{item["Number"]}</td>
+                  <td>{index + 1}</td>
                   <td>{item.Name}</td>
                   <td>{item.Qty}</td>
                   <td>{item.Cost}</td>
@@ -466,13 +754,13 @@ export default function Stores({ allStores }) {
                   <td>
                     <div className="flex gap-2 justify-center">
                       <button
-                        onClick={() => changeModal("edit", item)}
+                        onClick={() => changeModal("edit", item, index)}
                         className="bg-blue-500 rounded-md p-2 hover:bg-blue-800"
                       >
                         Edit
                       </button>
                       <button
-                        onClick={() => changeModal("delete", item)}
+                        onClick={() => changeModal("delete", item, index)}
                         className="bg-blue-500 rounded-md p-2 hover:bg-blue-800"
                       >
                         Delete
@@ -483,6 +771,12 @@ export default function Stores({ allStores }) {
               ))}
             </tbody>
           </table>
+          <button
+            onClick={() => changeModal("newItem")}
+            className="bg-blue-500 rounded-md p-2 mt-5 hover:bg-blue-800"
+          >
+            Create New Item
+          </button>
         </div>
       </div>
     </div>

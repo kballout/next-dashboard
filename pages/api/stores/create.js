@@ -65,32 +65,33 @@ export default async function handler(req, res) {
       let doc = {
         Name: name,
         Icon: icon,
+        "Level Required": level,
         ID: channel.id,
         "Role ID": role.id,
-        Options: {},
-        Items: {
-          "Item 1": {
+        Options: [],
+        Items: [
+          {
             Number: 1,
             Name: "",
             Qty: 0,
             Cost: new Double(0),
             Available: false,
           },
-          "Item 2": {
+          {
             Number: 2,
             Name: "",
             Qty: 0,
             Cost: new Double(0),
             Available: false,
           },
-          "Item 3": {
+          {
             Number: 3,
             Name: "",
             Qty: 0,
             Cost: new Double(0),
             Available: false,
           },
-        },
+        ],
       };
       database.collection("Stores").insertOne(doc);
       res.status(200).json({ status: "success" });

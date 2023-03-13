@@ -23,6 +23,7 @@ import General from "../app/dashboard/[id]/general";
 import Moderation from "@/app/dashboard/[id]/moderation";
 import TeamManagement from "@/app/dashboard/[id]/management";
 import Stores from "@/app/dashboard/[id]/stores";
+import Programs from "@/app/dashboard/[id]/programs";
 
 export default function Sidebar({ guildSettings = {} }) {
   const dispatch = useDispatch();
@@ -288,6 +289,11 @@ export default function Sidebar({ guildSettings = {} }) {
                 )}
                 {setting === "stores" ? (
                   <Stores allStores={guildSettings.current['stores']}/>
+                ) : (
+                  <></>
+                )}
+                {setting === "programs" ? (
+                  <Programs allPrograms={guildSettings.current['programs'].Programs}/>
                 ) : (
                   <></>
                 )}
