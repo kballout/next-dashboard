@@ -11,7 +11,7 @@ import {
 import { BsFillCheckSquareFill, BsXCircle } from "react-icons/bs";
 import { FiHome, FiSettings } from "react-icons/fi";
 import { HiUserGroup } from "react-icons/hi";
-import { GiSwordsEmblem } from "react-icons/gi";
+import { GiSwordsEmblem, GiWorld } from "react-icons/gi";
 import { ImStatsBars } from "react-icons/im";
 import { useDispatch, useSelector } from "react-redux";
 import { selectGuild, updateUserGuilds } from "@/utils/authReducer";
@@ -24,6 +24,7 @@ import Moderation from "@/app/dashboard/[id]/moderation";
 import TeamManagement from "@/app/dashboard/[id]/management";
 import Stores from "@/app/dashboard/[id]/stores";
 import Programs from "@/app/dashboard/[id]/programs";
+import WorldEvent from "@/app/dashboard/[id]/worldEvent";
 
 export default function Sidebar({ guildSettings = {} }) {
   const dispatch = useDispatch();
@@ -188,15 +189,15 @@ export default function Sidebar({ guildSettings = {} }) {
                       </li>
                       <li
                         className={`block text-start content-center rounded-xl h-10 cursor-pointer ${
-                          setting === "emblems" ? "bg-blue-600" : "bg-lime-600"
+                          setting === "worldEvent" ? "bg-blue-600" : "bg-lime-600"
                         }`}
                       >
                         <div
                           className="flex items-center h-10 m-1 no-underline"
-                          onClick={() => setSetting("emblems")}
+                          onClick={() => setSetting("worldEvent")}
                         >
-                          <GiSwordsEmblem size={20} />
-                          <h5 className="ml-1">Emblems</h5>
+                          <GiWorld size={20} />
+                          <h5 className="ml-1">World Event</h5>
                         </div>
                       </li>
                       <li
@@ -268,12 +269,12 @@ export default function Sidebar({ guildSettings = {} }) {
                   <></>
                 )}
                 {/*settings */}
-                {setting === "general" ? (
+                {guildSettings.current["initialize"] === true && setting === "general" ? (
                   <General generalSettings={guildSettings.current["general"]} />
                 ) : (
                   <></>
                 )}
-                {setting === "moderation" ? (
+                {guildSettings.current["initialize"] === true && setting === "moderation" ? (
                   <Moderation
                     wordsList={
                       Object.values(guildSettings.current["general"]['Bad Words List']['words'])
@@ -282,18 +283,23 @@ export default function Sidebar({ guildSettings = {} }) {
                 ) : (
                   <></>
                 )}
-                {setting === "management" ? (
+                {guildSettings.current["initialize"] === true && setting === "management" ? (
                   <TeamManagement allTeams={guildSettings.current["teams"]} />
                 ) : (
                   <></>
                 )}
-                {setting === "stores" ? (
+                {guildSettings.current["initialize"] === true && setting === "stores" ? (
                   <Stores allStores={guildSettings.current['stores']}/>
                 ) : (
                   <></>
                 )}
-                {setting === "programs" ? (
+                {guildSettings.current["initialize"] === true && setting === "programs" ? (
                   <Programs allPrograms={guildSettings.current['programs'].Programs}/>
+                ) : (
+                  <></>
+                )}
+                {guildSettings.current["initialize"] === true && setting === "worldEvent" ? (
+                  <WorldEvent worldEvent={guildSettings.current["general"]['World Event']}/>
                 ) : (
                   <></>
                 )}
