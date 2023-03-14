@@ -267,10 +267,14 @@ export default function Stores({ allStores }) {
     setSelectedExtraStoreOption(store);
   }
   function addExtraStore() {
-    setAddedStores([...addedStores, selectedExtraStoreOption.value]);
-    setExtraStores(
-      extraStores.filter((str) => str.value != selectedExtraStoreOption.value)
-    );
+    if(selectedExtraStoreOption.value){
+      setAddedStores([...addedStores, selectedExtraStoreOption.value]);
+      setExtraStores(
+        extraStores.filter((str) => str.value != selectedExtraStoreOption.value)
+      );
+    } else {
+      toast.error('No store has been selected', {theme: 'dark'})
+    }
   }
   function removeExtraStore(str, index) {
     setAddedStores(addedStores.filter((str, i) => i != index));

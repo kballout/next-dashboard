@@ -45,6 +45,20 @@ export default async function handler(req, res) {
             "Total Programs": progs['Total Programs'] - 1
         }
       })
+
+      //delete program for all players
+      let totalPath = `Participation.Total Attendance Per Program.${name}` 
+      let highestPath = `Participation.Highest Streaks Per Program.${name}` 
+      let currPath = `Participation.Current Streaks.${name}` 
+      let monthlyPath = `Participation.Monthly Attendance Per Program.${name}` 
+      await database.collection("Player Profile").updateMany({},{
+        $unset: {
+          [totalPath]: "",
+          [highestPath]: "",
+          [currPath]: "",
+          [monthlyPath]: "",
+        }
+      })
       res.status(200).json({ status: "success" });
     }
   } else {
